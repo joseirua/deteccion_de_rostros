@@ -4,7 +4,6 @@ import cv2
 from PIL import Image, ImageTk
 import os
 import time
-import threading
 import json
 from utils_capture import (
     load_face_detector, 
@@ -36,7 +35,6 @@ class FaceRecognitionApp:
         
         self.cap = None
         self.is_running = False
-        self.thread = None
         
         self.setup_capture_tab()
         self.setup_train_tab()
@@ -148,9 +146,7 @@ class FaceRecognitionApp:
         self.btn_start_capture.config(state='disabled')
         self.btn_stop_capture.config(state='normal')
         self.btn_capture_faces.config(state='normal')
-        self.thread = threading.Thread(target=self.video_loop_capture)
-        self.thread.daemon = True
-        self.thread.start()
+        self.video_loop_capture()
 
     def toggle_saving_faces(self):
         if not self.saving_faces:
@@ -176,11 +172,11 @@ class FaceRecognitionApp:
             self.current_user_id = None
 
     def video_loop_capture(self):
-        while self.is_running:
-            ret, frame = self.cap.read()
-            if not ret:
-                break
-                
+        if not self.is_running:
+            return
+
+        ret, frame = self.cap.read()
+        if ret:
             rects = detect_faces(self.detector, frame)
             assigned = self.tracker.update(rects)
             
@@ -212,8 +208,8 @@ class FaceRecognitionApp:
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_label_capture.imgtk = imgtk
             self.video_label_capture.configure(image=imgtk)
-            
-        self.cap.release()
+        
+        self.root.after(10, self.video_loop_capture)
 
     def train(self):
         selected_user = self.combo_users.get()
@@ -272,16 +268,14 @@ class FaceRecognitionApp:
         self.btn_start_recog.config(state='disabled')
         self.btn_stop_recog.config(state='normal')
         
-        self.thread = threading.Thread(target=self.video_loop_recog)
-        self.thread.daemon = True
-        self.thread.start()
+        self.video_loop_recog()
 
     def video_loop_recog(self):
-        while self.is_running:
-            ret, frame = self.cap.read()
-            if not ret:
-                break
-                
+        if not self.is_running:
+            return
+
+        ret, frame = self.cap.read()
+        if ret:
             rects = detect_faces(self.detector, frame)
             
             for (x, y, w, h, conf) in rects:
@@ -309,7 +303,7 @@ class FaceRecognitionApp:
             self.video_label_recog.imgtk = imgtk
             self.video_label_recog.configure(image=imgtk)
             
-        self.cap.release()
+        self.root.after(10, self.video_loop_recog)
 
     def stop_camera(self):
         self.is_running = False
