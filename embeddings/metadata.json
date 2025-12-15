@@ -1,0 +1,18 @@
+{
+    "usuario1": {
+        "username": "usuario1",
+        "name": "jose",
+        "lastname": "irua",
+        "id": "1750656702",
+        "age": "22",
+        "desc": "estudiante"
+    },
+    "usuario2": {
+        "username": "usuario2",
+        "name": "camilo",
+        "lastname": "martinez",
+        "id": "0402051395",
+        "age": "22",
+        "desc": "estudiante"
+    }
+}
